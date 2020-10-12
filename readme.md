@@ -25,6 +25,18 @@ cp .env.example .env
 sudo chown www:www .env
 ```
 
+###### 安裝問題排除
+如果出現Please provide a valid cache path.
+他需要正確的緩存路徑
+去添加緩存預設資料夾
+storage/framework/cache
+storage/framework/sessions
+storage/framework/views
+
+如果無法正式啟用請清除他的混存
+參考下面指令"清緩存"
+
+
 ##### 上傳檔案路由設定
 ```
 ln -s /usr/share/nginx/website/wt_api/storage/app/public /usr/share/nginx/website/wt_api/public/storage
