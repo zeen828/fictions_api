@@ -39,7 +39,7 @@ class UserType extends BaseType
                 'description' => '行動電話',
             ],
             'sex' => [
-                'type' => Type::nonNull(Type::int()),
+                'type' => Type::int(),
                 'description' => '性別(0:未知,1:男,2:女)',
             ],
             'points' => [
@@ -51,11 +51,11 @@ class UserType extends BaseType
                 'description' => 'APP(1:WAP,2:APP)',
             ],
             'channel_id' => [
-                'type' => Type::nonNull(Type::int()),
+                'type' => Type::int(),
                 'description' => '渠道',
             ],
             'link_id' => [
-                'type' => Type::nonNull(Type::int()),
+                'type' => Type::int(),
                 'description' => '推廣id',
             ],
             'vip' => [

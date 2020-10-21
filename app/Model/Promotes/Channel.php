@@ -16,10 +16,10 @@ class Channel extends Model
     protected $keyType = 'int';
     // 欄位名稱
     protected $fillable = [
-        'mode', 'name', 'description', 'book_id', 'chapter_id',
-        'prefix', 'url', 'wap_user_reg', 'app_user_reg', 'wap_recharge',
+        'name', 'description', 'mode', 'book_id', 'chapter_id',
+        'url', 'prefix', 'wap_user_reg', 'app_user_reg', 'wap_recharge',
         'app_recharge', 'wap_recharge_m', 'app_recharge_m', 'wap_recharge_d', 'app_recharge_d',
-        'download', 'default',
+        'download', 'for', 'default',
         'status', 'created_at', 'updated_at'
     ];
     // 隱藏不顯示欄位
@@ -33,6 +33,18 @@ class Channel extends Model
     // 自訂時間撮欄位
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
+
+    // 一對一
+    public function book()
+    {
+        return $this->hasOne('App\Model\Books\Bookinfo', 'id', 'book_id');
+    }
+
+    // 一對一
+    public function chapter()
+    {
+        return $this->hasOne('App\Model\Books\Bookchapter', 'id', 'chapter_id');
+    }
 
     // 活耀條件
     public function scopeActive($query)

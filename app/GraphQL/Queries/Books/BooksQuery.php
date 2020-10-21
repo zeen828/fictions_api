@@ -30,6 +30,7 @@ class BooksQuery extends Query {
     public function args(): array
     {
         return [
+            // 單獨條件
             'ids' => [
                 'name' => 'ids',
                 'type' => Type::string(),
@@ -46,6 +47,13 @@ class BooksQuery extends Query {
                 'name' => 'keyword',
                 'type' => Type::string(),
             ],
+            // 共用條件
+            // 性質(1:男頻,2:女頻,3:中性)
+            'nature' => [
+              'name' => 'nature',
+              'type' => Type::int(),
+              'defaultValue' => 0,
+            ],
             'page' => [
                 'name' => 'page',
                 'type' => Type::int(),
@@ -61,77 +69,96 @@ class BooksQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo, Closure $getSelectFields)
     {
-        $query = Bookinfo::active();
+        $query = Bookinfo::with('types')->active();
+        // 男女頻條件
+        if ($args['nature']!= 0) {
+            $query->where('nature', $args['nature']);
+        }
+
         // 指定多筆查詢
         if (isset($args['ids'])) {
-            $in = explode(',', $args['ids']);
-            $query->whereIn('id', $in);
-            $query->orderBy(\DB::raw('FIND_IN_SET(id, "' . $args['ids'] . '"' . ")"));
-
-            // Redis
-            $redisKey = sprintf('book_byids_%s_list%d_%d', md5($args['ids']), $args['page'], $args['limit']);
+            // 讀Redis
+            $redisKey = sprintf('book_byids%s_nature%d_list%d_%d', md5($args['ids']), $args['nature'], $args['page'], $args['limit']);
             if ($redisVal = Redis::get($redisKey)) {
                 return unserialize($redisVal);
             }
+
+            // 查詢
+            $in = explode(',', $args['ids']);
+            $query->whereIn('id', $in);
+            $query->orderBy(\DB::raw('FIND_IN_SET(id, "' . $args['ids'] . '"' . ")"));
             $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+
             // 寫Redis
             Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
             return $redisVal;
         }
+
         // 類型
         if (isset($args['booktypeId']) && $args['booktypeId'] != 0) {
+            // 讀Redis
+            $redisKey = sprintf('book_bybooktypeid%d_nature%d_list%d_%d', $args['booktypeId'], $args['nature'], $args['page'], $args['limit']);
+            if ($redisVal = Redis::get($redisKey)) {
+                return unserialize($redisVal);
+            }
+
+            // 查詢
             $booktypeId = $args['booktypeId'];
             $query->whereHas('types', function ($query) use ($booktypeId) {
                 $query->where('t_booktype.id', $booktypeId);
             });
-
-            // Redis
-            $redisKey = sprintf('book_bybooktypeid_%d_list%d_%d', $args['booktypeId'], $args['page'], $args['limit']);
-            if ($redisVal = Redis::get($redisKey)) {
-                return unserialize($redisVal);
-            }
             $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+
             // 寫Redis
             Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
             return $redisVal;
         }
+
         // 類型
         if (isset($args['tid']) && $args['tid'] != 0) {
+            // 讀Redis
+            $redisKey = sprintf('book_bytid%d_nature%d_list%d_%d', $args['tid'], $args['nature'], $args['page'], $args['limit']);
+            if ($redisVal = Redis::get($redisKey)) {
+                return unserialize($redisVal);
+            }
+
+            // 查詢
             $query->where('tid', $args['tid']);
-
-            // Redis
-            $redisKey = sprintf('book_bytid_%d_list%d_%d', $args['tid'], $args['page'], $args['limit']);
-            if ($redisVal = Redis::get($redisKey)) {
-                return unserialize($redisVal);
-            }
             $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+
             // 寫Redis
             Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
             return $redisVal;
         }
-        // 搜尋
+
+        // 關鍵字搜尋
         if (isset($args['keyword'])) {
-            $keyword = '%' . $args['keyword'] . '%';
-            $query->where('name', 'like', $keyword);
-
-            // Redis
-            $redisKey = sprintf('book_bykey_%s_list%d_%d', md5($args['keyword']), $args['page'], $args['limit']);
+            // 讀Redis
+            $redisKey = sprintf('book_bykey%s_nature%d_list%d_%d', md5($args['keyword']), $args['nature'], $args['page'], $args['limit']);
             if ($redisVal = Redis::get($redisKey)) {
                 return unserialize($redisVal);
             }
+
+            // 查詢
+            $keyword = '%' . $args['keyword'] . '%';
+            $query->where('search', '1')->where('name', 'like', $keyword);
             $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+
             // 寫Redis
             Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
             return $redisVal;
         }
-        //return $query->paginate($args['limit'], ['*'], 'page', $args['page']);
 
-        // Redis
-        $redisKey = sprintf('book_list%d_%d', $args['page'], $args['limit']);
+        // 普通多筆查詢
+        // 讀Redis
+        $redisKey = sprintf('book_nature%d_list%d_%d', $args['nature'], $args['page'], $args['limit']);
         if ($redisVal = Redis::get($redisKey)) {
             return unserialize($redisVal);
         }
+
+        // 查詢
         $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+
         // 寫Redis
         Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
         return $redisVal;
@@ -139,58 +166,118 @@ class BooksQuery extends Query {
 }
 /*
 {
-  books(page:1, limit:5) {
+  books(nature:0, page:1, limit:5) {
     bookId:id,
     name,
     description,
-    typeId:tid,
-    cover,
-    tags,
     author,
+    tags,
+    typeId:tid,
+    types {
+      id,
+      name,
+      description,
+      sex,
+      color,
+    },
+    cover,
+    cover_h,
+    size,
+    vip,
+    click_s,
+    click_o,
   }
 }
 {
-  books(ids: "70004,74037", limit:50) {
+  books(ids: "70004,74037", nature:0, limit:50) {
     bookId:id,
     name,
     description,
+    author,
+    tags,
+    types {
+      id,
+      name,
+      description,
+      sex,
+      color,
+    },
     typeId:tid,
     cover,
-    tags,
-    author,
+    cover_h,
+    size,
+    vip,
+    click_s,
+    click_o,
   }
 }
 {
-  books(booktypeId: 0, page:1, limit:5) {
+  books(booktypeId: 0, nature:0, page:1, limit:5) {
     bookId:id,
     name,
     description,
+    author,
+    tags,
+    types {
+      id,
+      name,
+      description,
+      sex,
+      color,
+    },
     typeId:tid,
     cover,
-    tags,
-    author,
+    cover_h,
+    size,
+    vip,
+    click_s,
+    click_o,
   }
 }
 {
-  books(tid: 0, page:1, limit:5) {
+  books(tid: 0, nature:0, page:1, limit:5) {
     bookId:id,
     name,
     description,
+    author,
+    tags,
+    types {
+      id,
+      name,
+      description,
+      sex,
+      color,
+    },
     typeId:tid,
     cover,
-    tags,
-    author,
+    cover_h,
+    size,
+    vip,
+    click_s,
+    click_o,
   }
 }
 {
-  books(keyword: "神秘", page:1, limit:5) {
+  books(keyword: "神秘", nature:0, page:1, limit:5) {
     bookId:id,
     name,
     description,
+    author,
+    tags,
+    types {
+      id,
+      name,
+      description,
+      sex,
+      color,
+    },
     typeId:tid,
     cover,
-    tags,
-    author,
+    cover_h,
+    size,
+    vip,
+    click_s,
+    click_o,
   }
 }
 */

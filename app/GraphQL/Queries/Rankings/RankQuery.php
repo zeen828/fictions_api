@@ -41,15 +41,16 @@ class RankQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo, Closure $getSelectFields)
     {
-        $query = Ranking::active();
-        //return $query->findOrFail($args['id']);
-
-        // Redis
-        $redisKey = sprintf('rank_ID%d', $args['id']);
+        // 讀Redis
+        $redisKey = sprintf('rank_byid%d', $args['id']);
         if ($redisVal = Redis::get($redisKey)) {
             return unserialize($redisVal);
         }
+
+        // 查詢
+        $query = Ranking::with('books')->active();
         $redisVal = $query->findOrFail($args['id']);
+
         // 寫Redis
         Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
         return $redisVal;

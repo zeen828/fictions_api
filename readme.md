@@ -25,6 +25,15 @@ cp .env.example .env
 sudo chown www:www .env
 ```
 
+##### 後台渠道包樣板處理
+複製渠道樣板到作業目錄
+```
+cp -R public/channel/ storage/app/public/channel/
+sudo chown www:www -R storage/app/public/channel/
+sudo chmod -R 777 storage/app/public/channel/
+
+```
+
 ###### 安裝問題排除
 如果出現Please provide a valid cache path.
 他需要正確的緩存路徑
@@ -61,6 +70,8 @@ composer dump-autoload
 php artisan cache:clear
 php artisan view:clear
 php artisan config:cache
+php artisan route:clear
+php artisan route:list
 ```
 
 ## 目錄
@@ -118,6 +129,7 @@ php artisan migrate --path="database/migrations/20200922_ga/"
 php artisan migrate --path="database/migrations/20200924_channel/"
 php artisan migrate --path="database/migrations/20200925_apk/"
 php artisan migrate --path="database/migrations/20201007_log/"
+php artisan migrate --path="database/migrations/20201015_ring_add_rr/"
 
 php artisan db:seed --class=AdminUserSeeder
 php artisan db:seed --class=AdminMenuSeeder
@@ -133,6 +145,7 @@ php artisan make:model Model/Books/Bookinfo
 php artisan make:model Model/Books/Bookchapter
 php artisan make:model Model/Books/Booktype
 php artisan make:model Model/Rankings/Ranking
+php artisan make:model Model/Rankings/RankingBooks
 php artisan make:model Model/Orders/Payment
 php artisan make:model Model/Orders/Amount
 php artisan make:model Model/Orders/Order
@@ -144,29 +157,34 @@ php artisan make:model Model/Promotes/Apk
 php artisan make:model Model/Promotes/ChannelApk
 php artisan make:model Model/Analysis/LogsUsersAccess
 php artisan make:model Model/Analysis/LogsBooksRanking
+php artisan make:model Model/Admin/AdminUsers
+php artisan make:model Model/Admin/AdminRoles
 ```
 
 ##### Laravel Controller
 ```PHP
+
 ```
 
 ## Laravel Admin 指令
 ##### Admin Controller
 ```php
-php artisan admin:make UserController --model=App\Model\Users\User
-php artisan admin:make DomainsController --model=App\Model\Domains\Domain
-php artisan admin:make BookinfoController --model=App\Model\Books\Bookinfo
-php artisan admin:make BookchapterController --model=App\Model\Books\Bookchapter
-php artisan admin:make BooktypeController --model=App\Model\Books\Booktype
-php artisan admin:make RankingController --model=App\Model\Rankings\Ranking
-php artisan admin:make PaymentController --model=App\Model\Orders\Payment
-php artisan admin:make AmountController --model=App\Model\Orders\Amount
-php artisan admin:make OrderController --model=App\Model\Orders\Order
-php artisan admin:make ChannelController --model=App\Model\Promotes\Channel
-php artisan admin:make ApkController --model=App\Model\Promotes\Apk
-php artisan admin:make ChannelApkController --model=App\Model\Promotes\ChannelApk
-php artisan admin:make AnalysisUserController --model=App\Model\Analysis\AnalysisUser
-php artisan admin:make AnalysisChannelController --model=App\Model\Analysis\AnalysisChannel
+php artisan admin:make Fictions\UserController --model=App\Model\Users\User
+php artisan admin:make Fictions\DomainsController --model=App\Model\Domains\Domain
+php artisan admin:make Fictions\Books\BookinfoController --model=App\Model\Books\Bookinfo
+php artisan admin:make Fictions\Books\BookchapterController --model=App\Model\Books\Bookchapter
+php artisan admin:make Fictions\Books\BooktypeController --model=App\Model\Books\Booktype
+php artisan admin:make Fictions\Books\RankingController --model=App\Model\Rankings\Ranking
+php artisan admin:make Fictions\Books\RankingBooksController --model=App\Model\Rankings\RankingBooks
+php artisan admin:make Fictions\Payments\PaymentController --model=App\Model\Orders\Payment
+php artisan admin:make Fictions\Payments\AmountController --model=App\Model\Orders\Amount
+php artisan admin:make Fictions\OrderController --model=App\Model\Orders\Order
+php artisan admin:make Fictions\Promotes\ChannelController --model=App\Model\Promotes\Channel
+php artisan admin:make Fictions\Promotes\ApkController --model=App\Model\Promotes\Apk
+php artisan admin:make Fictions\Promotes\ChannelApkController --model=App\Model\Promotes\ChannelApk
+php artisan admin:make Fictions\Analysis\AnalysisUserController --model=App\Model\Analysis\AnalysisUser
+php artisan admin:make Fictions\Analysis\AnalysisChannelController --model=App\Model\Analysis\AnalysisChannel
+php artisan admin:make Management\AdminUsersController --model=App\Model\Admin\AdminUsers
 ```
 
 ## 套件安裝
@@ -384,3 +402,4 @@ ps aux  // 執行序
 bwm-ng  // 查主機流量
 sscon 	// 看記憶體
 free	//
+

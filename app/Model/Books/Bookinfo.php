@@ -17,10 +17,10 @@ class Bookinfo extends Model
     // 欄位名稱
     protected $fillable = [
         'mode', 'name', 'description', 'author', 'tags',
-        'tid', 'cover', 'size', 'nature', 'new_at',
-        'end', 'open', 'free', 'recom', 'recom_chapter_id',
-        'vip', 'search', 'click_w', 'click_m', 'click_s',
-        'click_o', 'gid', 'index',
+        'tid', 'cover', 'cover_h', 'size', 'nature',
+        'new_at', 'end', 'open', 'free', 'recom',
+        'recom_chapter_id', 'vip', 'search', 'click_w', 'click_m',
+        'click_s', 'click_o', 'gid', 'index',
         'status', 'created_at', 'updated_at'
     ];
     // 隱藏不顯示欄位
@@ -50,6 +50,7 @@ class Bookinfo extends Model
     // 活耀條件
     public function scopeActive($query)
     {
-        return $query->where('status', 1)->orderBy('id', 'ASC');
+        return $query->where('status', 1);
+        //return $query->where('status', 1)->orderBy('id', 'ASC');
     }
 }

@@ -49,32 +49,37 @@ class BooktypesQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo, Closure $getSelectFields)
     {
-        $query = Booktype::active();
+        $query = Booktype::has('books')->active();
         // 指定多筆查詢
         if (isset($args['ids'])) {
-            $in = explode(',', $args['ids']);
-            $query->whereIn('id', $in);
-            $query->orderBy(\DB::raw('FIND_IN_SET(id, "' . $args['ids'] . '"' . ")"));
-
-            // Redis
-            $redisKey = sprintf('book_type_byids_%s_list%d_%d', md5($args['ids']), $args['page'], $args['limit']);
+            // 讀Redis
+            $redisKey = sprintf('book_type_byids%s_list%d_%d', md5($args['ids']), $args['page'], $args['limit']);
             if ($redisVal = Redis::get($redisKey)) {
                 return unserialize($redisVal);
             }
+
+            // 查詢
+            $in = explode(',', $args['ids']);
+            $query->whereIn('id', $in);
+            $query->orderBy(\DB::raw('FIND_IN_SET(id, "' . $args['ids'] . '"' . ")"));
             $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+
             // 寫Redis
             Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
             return $redisVal;
         }
-        //return $query->paginate($args['limit'], ['*'], 'page', $args['page']);
 
-        // Redis
+        // 普通多筆查詢
+        // 讀Redis
         $redisKey = sprintf('book_type_list%d-%d', $args['page'], $args['limit']);
         if ($redisVal = Redis::get($redisKey)) {
             return unserialize($redisVal);
         }
+
+        // 查詢
         $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
-        // 寫
+
+        // 寫Redis
         Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
         return $redisVal;
     }

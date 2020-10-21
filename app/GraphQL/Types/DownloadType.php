@@ -24,7 +24,7 @@ class DownloadType extends BaseType
                 'description' => '主鍵',
             ],
             'version' => [
-                'type' => Type::string(),
+                'type' => Type::nonNull(Type::string()),
                 'description' => '版號',
             ],
             'app_version' => [
@@ -32,7 +32,7 @@ class DownloadType extends BaseType
                 'description' => 'APP版號',
             ],
             'description' => [
-                'type' => Type::nonNull(Type::string()),
+                'type' => Type::string(),
                 'description' => '描述',
             ],
             'apk' => [

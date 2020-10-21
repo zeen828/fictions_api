@@ -3,6 +3,7 @@ namespace App\GraphQL\Types;
 
 use App\Model\Orders\Amount;
 use App\Model\Orders\Payment;
+use Redis;
 
 use GraphQL\Type\Definition\Type;
 use Rebing\GraphQL\Support\Facades\GraphQL;
@@ -80,16 +81,36 @@ class AmountType extends BaseType
                 'type' => Type::listOf(GraphQL::type('Payment')),
                 'description' => '多對多關聯-支付商',
                 'resolve' => function($root, $args) {
-                    $payments = Payment::where('status', '1')->get();
-                    return $payments;
+                    // 讀Redis
+                    $redisKey = sprintf('payment_status%d', 1);
+                    if ($redisVal = Redis::get($redisKey)) {
+                        return unserialize($redisVal);
+                    }
+
+                    // 查詢
+                    $redisVal = Payment::where('status', '1')->get();
+
+                    // 寫Redis
+                    Redis::set($redisKey, serialize($redisVal), 'EX', 60);// 60 1分鐘
+                    return $redisVal;
                 }
             ],
             'test_payment' => [
                 'type' => Type::listOf(GraphQL::type('Payment')),
                 'description' => '多對多關聯-支付商',
                 'resolve' => function($root, $args) {
-                    $payments = Payment::where('status', '2')->get();
-                    return $payments;
+                    // 讀Redis
+                    $redisKey = sprintf('payment_status%d', 2);
+                    if ($redisVal = Redis::get($redisKey)) {
+                        return unserialize($redisVal);
+                    }
+
+                    // 查詢
+                    $redisVal = Payment::where('status', '2')->get();
+
+                    // 寫Redis
+                    Redis::set($redisKey, serialize($redisVal), 'EX', 60);// 60 1分鐘
+                    return $redisVal;
                 }
             ]
         ];

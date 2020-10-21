@@ -51,20 +51,21 @@ class ChaptersQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo, Closure $getSelectFields)
     {
+        // 讀Redis
+        $redisKey = sprintf('chapter_bybookid%d_list%d_%d', $args['bookId'], $args['page'], $args['limit']);
+        if ($redisVal = Redis::get($redisKey)) {
+            return unserialize($redisVal);
+        }
+
+        // 查詢
         $query = Bookchapter::active();
         // 指定多筆查詢
         if (isset($args['bookId'])) {
             $query->where('book_id', $args['bookId']);
         }
-        //return $query->paginate($args['limit'], ['*'], 'page', $args['page']);
-
-        // Redis
-        $redisKey = sprintf('chapter_bybookID%d_list%d_%d', $args['bookId'], $args['page'], $args['limit']);
-        if ($redisVal = Redis::get($redisKey)) {
-            return unserialize($redisVal);
-        }
         $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
-        // 寫
+
+        // 寫Redis
         Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
         return $redisVal;
     }

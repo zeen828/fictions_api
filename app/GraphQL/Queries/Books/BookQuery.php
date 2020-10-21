@@ -41,14 +41,14 @@ class BookQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo, Closure $getSelectFields)
     {
-        // Redis
-        $redisKey = sprintf('book_ID%d', $args['id']);
+        // 讀Redis
+        $redisKey = sprintf('book_byid%d', $args['id']);
         if ($redisVal = Redis::get($redisKey)) {
             return unserialize($redisVal);
         }
 
         // 查詢
-        $query = Bookinfo::active();
+        $query = Bookinfo::with('types')->has('chapter')->active();
         $query->where('id', $args['id']);
         $redisVal = $query->first();
 
@@ -63,17 +63,21 @@ class BookQuery extends Query {
     bookId:id,
     name,
     description,
-    typeId:tid,
-    cover,
+    author,
     tags,
+    typeId:tid,
     types {
       id,
       name,
       description,
       sex,
       color,
-    }
-    author,
+    },
+    cover,
+    size,
+    vip,
+    click_s,
+    click_o,
     chapter {
       chapterId:id,
       bookId:book_id,

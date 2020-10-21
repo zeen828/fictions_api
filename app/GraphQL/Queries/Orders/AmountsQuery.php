@@ -46,16 +46,19 @@ class AmountsQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo, Closure $getSelectFields)
     {
-        $query = Amount::active();
-        //return $query->paginate($args['limit'], ['*'], 'page', $args['page']);
-
-        // Redis
-        $redisKey = sprintf('amount_list_%d_%d', $args['page'], $args['limit']);
+        // 讀Redis(配合後台可以清除調整不做分頁)
+        //$redisKey = sprintf('amount_list_%d_%d', $args['page'], $args['limit']);
+        $redisKey = sprintf('amount_all');
         if ($redisVal = Redis::get($redisKey)) {
             return unserialize($redisVal);
         }
-        $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
-        // 寫
+
+        // 查詢
+        $query = Amount::active();
+        //$redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+        $redisVal = $query->get();
+
+        // 寫Redis
         Redis::set($redisKey, serialize($redisVal), 'EX', 86400);// 60 * 60 * 24 一天
         return $redisVal;
     }

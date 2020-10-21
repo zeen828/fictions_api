@@ -17,10 +17,9 @@ class BookAddOldClick extends Migration
      */
     public function up()
     {
-        // Schema::table('t_analysis_user', function (Blueprint $table)
+        // Schema::table('t_channels', function (Blueprint $table)
         // {
-        //     $table->integer('app_user_acc_hour')->default(0)->comment('每小時訪問數')->after('app_user_acc');
-        //     $table->integer('wap_user_acc_hour')->default(0)->comment('每小時訪問數')->after('app_user_acc');
+        //     $table->tinyInteger('mode')->default(0)->comment('推廣模式(0:首頁,1:書籍,2:章節,3:自訂)')->after('description');
         // });
         // Schema::table('t_analysis_channel', function (Blueprint $table)
         // {
@@ -36,10 +35,9 @@ class BookAddOldClick extends Migration
      */
     public function down()
     {
-        // Schema::table('t_analysis_user', function (Blueprint $table)
+        // Schema::table('t_channels', function (Blueprint $table)
         // {
-        //     $table->dropColumn('wap_user_acc_hour');// 刪除欄位
-        //     $table->dropColumn('app_user_acc_hour');// 刪除欄位
+        //     $table->dropColumn('url');// 刪除欄位
         // });
         // Schema::table('t_analysis_channel', function (Blueprint $table)
         // {

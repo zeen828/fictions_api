@@ -52,20 +52,23 @@ class DomainsQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $info, Closure $getSelectFields)
     {
+        // 讀Redis(配合後台可以清除調整不做分頁)
+        // $redisKey = sprintf('domain_byspecies%d_list%d_%d', $args['species'], $args['page'], $args['limit']);
+        $redisKey = sprintf('domain_byspecies%d_all', $args['species']);
+        if ($redisVal = Redis::get($redisKey)) {
+            return unserialize($redisVal);
+        }
+
+        // 查詢
         $query = Domain::active();
         // 指定多筆查詢
         if (isset($args['species'])) {
             $query->where('species', $args['species']);
         }
-        //return $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+        // $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+        $redisVal = $query->get();
 
-        // Redis
-        $redisKey = sprintf('domain_byspecies%d_list%d_%d', $args['species'], $args['page'], $args['limit']);
-        if ($redisVal = Redis::get($redisKey)) {
-            return unserialize($redisVal);
-        }
-        $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
-        // 寫
+        // 寫Redis
         Redis::set($redisKey, serialize($redisVal), 'EX', 86400);// 60 * 60 * 24 一天
         return $redisVal;
     }

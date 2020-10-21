@@ -82,6 +82,17 @@ class TestsController extends Controller
                     }
                 }
                 break;
+            case 5:
+                dump('字串開頭檢查');
+                //$file_path = '/oss/abcs/php';
+                //$file_path = 'http://www.googole.com/oss/abcs/php';
+                $file_path = 'https://www.googole.com/oss/abcs/php';
+                if(starts_with($file_path, 'http://') || starts_with($file_path, 'https://')){
+                    dump($file_path, 'http開頭');
+                }else{
+                    dump($file_path, '不是');
+                }
+                break;
             default:
                 return response()->json(['測試外投資料庫'], 200, [], JSON_PRETTY_PRINT);
         }
@@ -282,6 +293,63 @@ class TestsController extends Controller
                 $query = AnalysisUser::select(DB::raw('sum(wap_user_reg) as sum_wur, sum(app_user_reg) as sum_aur, sum(wap_user_login) as sum_wul, sum(app_user_login) as sum_aul, sum(wap_order_all) as sum_woa, sum(app_order_all) as sum_aoa, sum(wap_order_success) as sum_wos, sum(app_order_success) as sum_aos, sum(wap_recharge) as sum_wr, sum(app_recharge) as sum_ar'))->first();
                 dump($query);
                 break;
+            case 16:
+                // 多對多關聯查詢
+                dump('關聯資料庫查詢條件');
+                // 多對多
+                // with() - 預載關聯
+                // $query1 = Bookinfo::with('types')->active();
+                // has() - 宣告關聯model而已
+                $query1 = Bookinfo::has('types')->active();
+                // whereHas() - 針對關聯model去下條件
+                // $query1 = Bookinfo::whereHas('types', function ($query) {
+                //     $query->where('t_booktype.id', 1);
+                // });
+                // dump($query1->toSql());
+                dump($query1->skip(10)->take(5)->get());
+                // 一對一
+                // $query2 = Bookinfo::with('chapter')->active();
+                // $query2 = Bookinfo::has('chapter')->active();
+                $query2 = Bookinfo::whereHas('chapter', function ($query) {
+                    $query->where('status', 1);
+                });
+                dump($query2->toSql());
+                dump($query2->skip(10)->take(5)->get());
+                break;
+            case 17:
+                // 多對多關聯查詢
+                dump('關聯資料轉id,id,id');
+                $query = Ranking::with('books')->active()->get();
+                //dump($query);
+                if (!$query->isEmpty()) {
+                    $i = 205;
+                    foreach ($query as $val) {
+                        $books = $val->books;
+                        //dump('books', $books);
+                        // 補資料
+                        if(count($books) == 0){
+                            dump('沒有', $val->id);
+                            $in = explode(',', $val->book_id);
+                            dump($in);
+                            $now_date = date('Y-m-d h:i:s');
+                            $saveData = array();
+                            foreach ($in as $bookid) {
+                                $i++;
+                                $saveData[] = ['id' => $i, 'ranking_id' => $val->id, 'bookinfo_id' => $bookid, 'created_at' => $now_date, 'updated_at' => $now_date];
+                            }
+                            dump($saveData);
+                            //DB::table('t_ranking_bookinfo')->insert($saveData);
+                        }
+                        //dump('books implode', $books->implode('id', ','));
+                    }
+                }
+                break;
+            case 18:
+                dump();
+                $id = $form->model()->id;
+                $book = Bookinfo::find($id);
+    
+                break;
             default:
                 var_dump('測試外投資料庫');
         }
@@ -419,12 +487,14 @@ class TestsController extends Controller
         dump('oss測試頁');
         switch ($no){
             case 1:
+                dump('OSS讀取');
                 $oss = Storage::disk('oss_txt');
                 dump($oss);
                 $results = $oss->read('book/70884/381662.txt');
                 dump($results);
                 break;
             case 2:
+                dump('OSS上傳');
                 $a = Config::get('filesystems.disks.oss_img.bucket');
                 //$a = env('FILE_ADMIN_PATH', '/admin');
                 dump($a);
@@ -444,6 +514,12 @@ class TestsController extends Controller
                 $txt = $oss->putFile($file_path, new File($upload_path . '/' . $file_path));
                 dump($txt);
                 break;
+            case 3:
+                dump('OSS上傳');
+                $oss = Storage::disk('oss_img');
+                //put
+
+                break;
             default:
                 return response()->json(['測試外投資料庫'], 200, [], JSON_PRETTY_PRINT);
         }
@@ -455,6 +531,7 @@ class TestsController extends Controller
         dump('Redi測試頁');
         switch ($no){
             case 1:
+                //
                 var_dump(['title'=>'redis測試頁']);
                 // GET laravel_database_will_test
                 $query = sprintf('QL_book_%s', '74037');
@@ -494,7 +571,16 @@ class TestsController extends Controller
                 // Redis::expire($redisKey, 60);
                 break;
             case 3:
+                //更新壽命刪除資料
                 dump('REDIS壽命');
+                $id = 1;
+                $redisKey = sprintf('payment_ID%d', $id);
+                dump($redisKey);
+                $s = Redis::expire($redisKey, 0);
+                dump($s);
+                break;
+            case 4:
+                dump('REDIS - 用KEY篩選全部有關的KEY');
                 $id = 1;
                 $redisKey = sprintf('payment_ID%d', $id);
                 dump($redisKey);

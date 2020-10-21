@@ -45,16 +45,19 @@ class RanksQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo, Closure $getSelectFields)
     {
-        $query = Ranking::active();
-        //return $query->paginate($args['limit'], ['*'], 'page', $args['page']);
-
-        // Redis
-        $redisKey = sprintf('rank_list%d_%d', $args['page'], $args['limit']);
+        // 讀Redis(配合後台可以清除調整不做分頁)
+        //$redisKey = sprintf('rank_list%d_%d', $args['page'], $args['limit']);
+        $redisKey = sprintf('rank_all');
         if ($redisVal = Redis::get($redisKey)) {
             return unserialize($redisVal);
         }
-        $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
-        // 寫
+
+        // 查詢
+        $query = Ranking::with('books')->active();
+        //$redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+        $redisVal = $query->get();
+
+        // 寫Redis
         Redis::set($redisKey, serialize($redisVal), 'EX', 3600);
         return $redisVal;
     }

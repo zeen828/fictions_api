@@ -51,7 +51,7 @@ class PackageJob extends Command
             foreach ($crons as $cron) {
                 $this->info('[' . date('Y-m-d H:i:s') . '] START');
                 // Redis 清除
-                $redisKey = sprintf('ChannelApk_JOIN_Apk_ChannelId%d', $cron->channel_id);
+                $redisKey = sprintf('channelapk_join_apk_bychannelid%d', $cron->channel_id);
                 Redis::expire($redisKey, 0);
                 //print_r($cron->channel);
                 //print_r($cron->apk);

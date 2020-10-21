@@ -36,7 +36,7 @@ class PointlogType extends BaseType
                 'description' => '一對一關聯-書籍',
             ],
             'chapter_id' => [
-                'type' => Type::nonNull(Type::int()),
+                'type' => Type::int(),
                 'description' => '章節ID',
             ],
             // 一對一

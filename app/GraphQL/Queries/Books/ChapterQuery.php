@@ -53,15 +53,15 @@ class ChapterQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo, Closure $getSelectFields)
     {
-        // Redis
-        $redisKey = sprintf('chapter_ID%d', $args['id']);
+        // 讀Redis
+        $redisKey = sprintf('chapter_byid%d', $args['id']);
         if ($redisVal = Redis::get($redisKey)) {
             $redisVal = unserialize($redisVal);
         } else {
             // 取得章節資料
-            $query = Bookchapter::active();
+            $query = Bookchapter::with('book')->active();
             $redisVal = $query->findOrFail($args['id']);
-            // 寫
+            // 寫Redis
             Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
         }
         $chapter = $redisVal;

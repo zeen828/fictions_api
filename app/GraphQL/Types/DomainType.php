@@ -31,7 +31,7 @@ class DomainType extends BaseType
                 'description' => 'ssl(0:無,1:有)',
             ],
             'power' => [
-                'type' => Type::nonNull(Type::int()),
+                'type' => Type::int(),
                 'description' => '高權(0:無,1:有)',
             ],
             'domain' => [
@@ -43,11 +43,11 @@ class DomainType extends BaseType
                 'description' => '備註',
             ],
             'cdn_del' => [
-                'type' => Type::nonNull(Type::int()),
+                'type' => Type::int(),
                 'description' => 'CDN(0:刪除,1:啟用)',
             ],
             'status' => [
-                'type' => Type::nonNull(Type::int()),
+                'type' => Type::int(),
                 'description' => '狀態(0:停用,1:啟用,2:備用)',
             ],
         ];

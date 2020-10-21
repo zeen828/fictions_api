@@ -26,8 +26,9 @@ class Books extends Migration
             $table->string('tags')->nullable()->comment('標籤');
             $table->integer('tid')->default(0)->comment('分類');
             $table->string('cover')->nullable()->comment('封面');
+            $table->string('cover_h')->nullable()->comment('封面-橫');
             $table->integer('size')->default(0)->comment('字數');
-            $table->tinyInteger('nature')->default(0)->comment('性質(0:男頻,1:女頻,2:中性)');
+            $table->tinyInteger('nature')->default(0)->comment('性質(1:男頻,2:女頻,3:中性)');
             $table->timestamp('new_at')->nullable()->comment('新書日期');
             $table->tinyInteger('end')->default(0)->comment('完結(0:連載,1:完結)');
             $table->tinyInteger('open')->default(0)->comment('完全上架(0:還有章節未開放,1:完全開放)');
@@ -39,7 +40,7 @@ class Books extends Migration
             $table->integer('click_w')->default(0)->comment('周點擊');
             $table->integer('click_m')->default(0)->comment('月點擊');
             $table->integer('click_s')->default(0)->comment('總點擊');
-            $table->integer('click_o')->default(0)->comment('外頭錄點擊');// 追加在click_s後面
+            $table->integer('click_o')->default(0)->comment('外頭點擊擊');// 追加在click_s後面
             $table->integer('gid')->default(0)->comment('所属规则id?');
             $table->integer('index')->default(0)->comment('派單指數?');
             $table->tinyInteger('status')->default(2)->comment('狀態(0:停用,1:啟用,2:待審)');

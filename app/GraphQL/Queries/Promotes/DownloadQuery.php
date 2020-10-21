@@ -42,8 +42,8 @@ class DownloadQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo, Closure $getSelectFields)
     {
-        // Redis
-        $redisKey = sprintf('ChannelApk_JOIN_Apk_ChannelId%d', $args['ChannelId']);
+        // 讀Redis
+        $redisKey = sprintf('channelapk_join_apk_bychannelid%d', $args['ChannelId']);
         if ($redisVal = Redis::get($redisKey)) {
             $redisVal = unserialize($redisVal);
             // 下載統計
@@ -51,6 +51,7 @@ class DownloadQuery extends Query {
             return $redisVal;
         }
 
+        // 查詢
         // ChannelId:0 取預設渠道
         if ($args['ChannelId'] == 0) {
             $channel = Channel::active()->where('default', 1)->first();

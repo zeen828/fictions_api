@@ -31,6 +31,12 @@ class Ranking extends Model
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
 
+    // 多對多
+    public function books()
+    {
+        return $this->belongsToMany('App\Model\Books\Bookinfo', 't_ranking_bookinfo', 'ranking_id', 'bookinfo_id');
+    }
+
     // 活耀條件
     public function scopeActive($query)
     {

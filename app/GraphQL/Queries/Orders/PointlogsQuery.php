@@ -2,7 +2,7 @@
 namespace App\GraphQL\Queries\Orders;
 
 use App\Model\Orders\PointLog;
-//use Redis;
+use Redis;
 
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
@@ -55,7 +55,6 @@ class PointlogsQuery extends Query {
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo, Closure $getSelectFields)
     {
-        $query = PointLog::active();
         if (isset($args['token']) && !empty($args['token'])) {
             // 解JWT取user.id
             $key = Config::get('jwt.secret');
@@ -63,15 +62,27 @@ class PointlogsQuery extends Query {
             //print_r($userJwt);
             //exit();
             if(!empty($userJwt)){
-                // 取user資料
+                // 讀Redis
+                $redisKey = sprintf('pointlog_byuserjwtid%d_list_%d_%d', $userJwt->id, $args['page'], $args['limit']);
+                if ($redisVal = Redis::get($redisKey)) {
+                    return unserialize($redisVal);
+                }
+
+                // 查詢 - 取user點數資料
+                $query = PointLog::active();
                 $query->where('user_id', $userJwt->id);
+                $redisVal = $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+
+                // 寫Redis
+                Redis::set($redisKey, serialize($redisVal), 'EX', 86400);// 60 * 60 * 24 一天
+                return $redisVal;
             } else {
                 return '';
             }
         }else{
             return '';
         }
-        return $query->paginate($args['limit'], ['*'], 'page', $args['page']);
+        
     }
 }
 /*

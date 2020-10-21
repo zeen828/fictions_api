@@ -2,6 +2,9 @@
 namespace App\GraphQL\Types;
 
 use App\Model\Books\Bookinfo;
+use App\Model\Books\Booktype as Booktypes;// 名稱衝突
+use App\Model\Books\Bookchapter;
+use Redis;
 
 use GraphQL\Type\Definition\Type;
 use Rebing\GraphQL\Support\Facades\GraphQL;
@@ -54,13 +57,17 @@ class BookType extends BaseType
                 'type' => Type::nonNull(Type::string()),
                 'description' => '封面',
             ],
+            'cover_h' => [
+                'type' => Type::string(),
+                'description' => '封面-橫',
+            ],
             'size' => [
                 'type' => Type::nonNull(Type::int()),
                 'description' => '字數',
             ],
             'nature' => [
                 'type' => Type::nonNull(Type::int()),
-                'description' => '性質(0:男頻,1:女頻,2:中性)',
+                'description' => '性質(1:男頻,2:女頻,3:中性)',
             ],
             'end' => [
                 'type' => Type::nonNull(Type::int()),
@@ -102,15 +109,26 @@ class BookType extends BaseType
                 'type' => Type::nonNull(Type::int()),
                 'description' => '總點擊',
             ],
+            'click_o' => [
+                'type' => Type::nonNull(Type::int()),
+                'description' => '外頭點擊擊',
+            ],
             // 一對多
             'chapter' => [
                 'type' => Type::listOf(GraphQL::type('Chapter')),
                 //'type' => Type::nonNull(Type::string()),
                 'description' => '一對多關聯-章節',
-                // 'resolve' => function($root, $args) {
-                //     // 自訂
-                //     return 'test';
-                // }
+                'resolve' => function($root) {
+                    // Redis
+                    $redisKey = sprintf('chapter_bybookid%d_all', $root->id);
+                    if ($redisVal = Redis::get($redisKey)) {
+                        return unserialize($redisVal);
+                    }
+                    $redisVal = Bookchapter::active()->where('book_id', $root->id)->get();
+                    // 寫
+                    Redis::set($redisKey, serialize($redisVal), 'EX', 3600);// 60 * 60 一小時
+                    return $redisVal;
+                }
             ]
         ];
 

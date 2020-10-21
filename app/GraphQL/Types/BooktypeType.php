@@ -31,7 +31,7 @@ class BooktypeType extends BaseType
                 'description' => '描述',
             ],
             'sex' => [
-                'type' => Type::nonNull(Type::int()),
+                'type' => Type::int(),
                 'description' => '性別(0:男,1:女)',
             ],
             'color' => [

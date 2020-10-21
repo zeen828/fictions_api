@@ -127,6 +127,8 @@ return [
                 'domains' => App\GraphQL\Queries\Domains\DomainsQuery::class,
                 // 下載
                 'download' => App\GraphQL\Queries\Promotes\DownloadQuery::class,
+                // 推廣渠道
+                'channel' => App\GraphQL\Queries\Op\ChannelQuert::class,
             ],
             'mutation' => [
                 // 'example_mutation'  => ExampleMutation::class,
@@ -181,6 +183,8 @@ return [
         'Download' => App\GraphQL\Types\DownloadType::class,
         // LogsUsersAccess
         'LogsUsersAccess' => App\GraphQL\Types\LogsusersaccessType::class,
+        // 推廣渠道
+        'Channel' => App\GraphQL\Types\ChannelType::class,
         // 其他
         'Other' => App\GraphQL\Types\OtherType::class,
     ],
